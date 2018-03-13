@@ -89,6 +89,30 @@ static void fdatawait_one_bdev(struct block_device *bdev, void *arg)
 	filemap_fdatawait(bdev->bd_inode->i_mapping);
 }
 
+#ifdef CONFIG_DYNAMIC_FSYNC
+/*
+ * Sync all the data for all the filesystems (called by sys_sync() and
+ * emergency sync)
+ */
+void sync_filesystems(int nowait)
+{
+	/*
+	 * Sync twice to reduce the possibility we skipped some inodes / pages
+	 * because they were temporarily locked
+	 */
+
+	iterate_supers(sync_inodes_one_sb, &nowait);
+	iterate_supers(sync_fs_one_sb, &nowait);
+	iterate_bdevs(fdatawrite_one_bdev, NULL);
+	iterate_bdevs(fdatawait_one_bdev, NULL);
+
+	iterate_supers(sync_inodes_one_sb, &nowait);
+	iterate_supers(sync_fs_one_sb, &nowait);
+	iterate_bdevs(fdatawrite_one_bdev, NULL);
+	iterate_bdevs(fdatawait_one_bdev, NULL);
+}
+#endif
+
 /*
  * Sync everything. We start by waking flusher threads so that most of
  * writeback runs on all devices in parallel. Then we sync all inodes reliably
@@ -178,7 +202,14 @@ SYSCALL_DEFINE1(syncfs, int, fd)
 int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
 {
 	struct inode *inode = file->f_mapping->host;
+<<<<<<< HEAD
 
+=======
+#ifdef CONFIG_DYNAMIC_FSYNC
+	if (dyn_fsync_active && suspend_active)
+		return 0;
+#endif
+>>>>>>> 7be54a0... fs/dyn_sync_cntrl: dynamic sync control 2.1 for msm89xx
 	if (!file->f_op->fsync)
 		return -EINVAL;
 	if (!datasync && (inode->i_state & I_DIRTY_TIME)) {
@@ -220,11 +251,25 @@ static int do_fsync(unsigned int fd, int datasync)
 
 SYSCALL_DEFINE1(fsync, unsigned int, fd)
 {
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_DYNAMIC_FSYNC
+	if (dyn_fsync_active && suspend_active)
+		return 0;
+#endif
+>>>>>>> 7be54a0... fs/dyn_sync_cntrl: dynamic sync control 2.1 for msm89xx
 	return do_fsync(fd, 0);
 }
 
 SYSCALL_DEFINE1(fdatasync, unsigned int, fd)
 {
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_DYNAMIC_FSYNC
+	if (dyn_fsync_active && suspend_active)
+		return 0;
+#endif
+>>>>>>> 7be54a0... fs/dyn_sync_cntrl: dynamic sync control 2.1 for msm89xx
 	return do_fsync(fd, 1);
 }
 
@@ -284,6 +329,14 @@ SYSCALL_DEFINE4(sync_file_range, int, fd, loff_t, offset, loff_t, nbytes,
 	loff_t endbyte;			/* inclusive */
 	umode_t i_mode;
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_DYNAMIC_FSYNC
+	if (dyn_fsync_active && suspend_active)
+		return 0;
+#endif
+
+>>>>>>> 7be54a0... fs/dyn_sync_cntrl: dynamic sync control 2.1 for msm89xx
 	ret = -EINVAL;
 	if (flags & ~VALID_FLAGS)
 		goto out;
@@ -363,5 +416,12 @@ out:
 SYSCALL_DEFINE4(sync_file_range2, int, fd, unsigned int, flags,
 				 loff_t, offset, loff_t, nbytes)
 {
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_DYNAMIC_FSYNC
+	if (dyn_fsync_active && suspend_active)
+		return 0;
+#endif
+>>>>>>> 7be54a0... fs/dyn_sync_cntrl: dynamic sync control 2.1 for msm89xx
 	return sys_sync_file_range(fd, offset, nbytes, flags);
 }
