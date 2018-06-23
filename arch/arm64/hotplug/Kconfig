@@ -1,0 +1,5 @@
+config AUTOSMP_HOTPLUG
+	bool "Enable AutoSMP cpu hotplug driver"
+	default n
+	help
+	  AutoSMP cpu hotplug driver for ARM SOCs

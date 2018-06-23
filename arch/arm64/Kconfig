@@ -696,7 +696,7 @@ config ARCH_NR_GPIO
 
           If unsure, leave the default value.
 
-
+source "drivers/pci/hotplug/Kconfig"
 source kernel/Kconfig.preempt
 
 source kernel/Kconfig.hz
